@@ -3,13 +3,14 @@ package subcommands
 import (
 	"context"
 	"flag"
-	core "hyprshell/pkg"
 	"log"
 	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	core "github.com/nehrbash/hyprshell/pkg"
 
 	"github.com/google/subcommands"
 )

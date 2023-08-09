@@ -1,4 +1,4 @@
-module hyprshell
+module github.com/nehrbash/hyprshell
 
 go 1.20
 

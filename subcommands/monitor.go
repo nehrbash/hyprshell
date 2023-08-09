@@ -4,8 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	core "hyprshell/pkg"
 	"os"
+
+	core "github.com/nehrbash/hyprshell/pkg"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/google/subcommands"

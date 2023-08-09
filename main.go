@@ -5,7 +5,7 @@ import (
 	"flag"
 	"os"
 
-	cmd "hyprshell/subcommands"
+	cmd "github.com/nehrbash/hyprshell/subcommands"
 
 	sc "github.com/google/subcommands"
 )

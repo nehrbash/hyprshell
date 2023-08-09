@@ -3,10 +3,10 @@ package core
 import (
 	"context"
 	"fmt"
-	"hyprshell/pkg/quote"
 	"log"
 
 	"github.com/godbus/dbus/v5"
+	"github.com/nehrbash/hyprshell/pkg/quote"
 )
 
 const QuoteInterfaceName = "com.hypr.QuoteService"

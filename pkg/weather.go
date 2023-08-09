@@ -2,10 +2,10 @@ package core
 
 import (
 	"context"
-	"hyprshell/pkg/weather"
 	"log"
 
 	"github.com/godbus/dbus/v5"
+	"github.com/nehrbash/hyprshell/pkg/weather"
 )
 
 const ServiceInterfaceWeather = "com.hypr.WeatherService"

@@ -3,6 +3,7 @@ package weather
 import (
 	"encoding/json"
 	"io/ioutil"
+
 	"log"
 	"net/http"
 	"time"

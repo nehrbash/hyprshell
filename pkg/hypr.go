@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"hyprshell/pkg/icon"
 	"log"
 	"net"
 	"net/textproto"
@@ -17,6 +16,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/nehrbash/hyprshell/pkg/icon"
 )
 
 type Clients []Client
