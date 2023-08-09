@@ -1,0 +1,22 @@
+*NOTE:* this is really only intended for personal use at the moment.
+
+* Hyprshell
+
+  A desktop daemon the replaces shell scripts that collected information for =eww= and other system processes. Plan on expanding it to handle anything that doesn't make since for a hyprland plugin to do.
+
+* Daemon Actions
+  - eww: get weather
+  - cron notifications (reminder to fix posture and look after eyes)
+  - eww: window client
+  - eww: submap
+** TODO eww: replace playerctrl
+** TODO eww: workspaces
+* Notes
+
+** Example of how to send Signal to Daemon from client
+#+begin_src go
+//
+obj := conn.Object(core.ServiceName, core.ServiceObjectPath)
+action := core.DockSignal{Type: core.DockAction("Test"), Msg: ""}
+err = obj.Call(core.ServiceInterface+"."+core.MinimizeApp, 0, action).Store()
+#+end_src
