@@ -25,6 +25,10 @@ type Monitors []struct {
 		ID   int    `json:"id"`
 		Name string `json:"name"`
 	} `json:"activeWorkspace"`
+	SpecialWorkspace struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	} `json:"specialWorkspace"`
 	Reserved   []int   `json:"reserved"`
 	Scale      float64 `json:"scale"`
 	Transform  int     `json:"transform"`
