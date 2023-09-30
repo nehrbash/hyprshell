@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -44,83 +43,6 @@ func (m *Monitors) Active() int {
 		}
 	}
 	return 0
-}
-
-var MonitorInterfaceName = "com.hypr.monitorService"
-
-type MonitorService struct {
-	monitors Monitors
-}
-
-// func (MonitorService) parse(msg string) string {
-//	parts := strings.Split(msg, ",")
-//	if len(parts) != 2 {
-//		return ""
-//	}
-//	log.Print(parts)
-
-//	mon := parts[0]
-//	// desktop := parts[1]
-//	return fmt.Sprintf(`{ "name": "%s" }`, mon)
-// }
-
-func DbusMontitor(ctx context.Context, focusedMonitor chan string) {
-	service := MonitorService{}
-	conn := GetDbusConnection()
-	err := conn.Export(service, ServiceObjectPath, MonitorInterfaceName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-focusedMonitor:
-			log.Print("focusedmon signal received")
-			service.monitors = GetMonitors()
-			data := fmt.Sprintf(`{ "id": "%v" }`, service.monitors.Active())
-			err = conn.Emit(ServiceObjectPath, MonitorInterfaceName+".monitor", data)
-			if err != nil {
-				log.Print(err)
-			}
-		}
-	}
-}
-
-type WorkspaceService struct {
-	workspaces Workspaces
-}
-
-var WorkspacesInterfaceName = "com.hypr.workspaceService"
-
-func DbusWorkspaces(ctx context.Context, workspace chan string) {
-	interfaceName := WorkspacesInterfaceName
-	memberName := ".workspaces"
-
-	service := WorkspaceService{
-		workspaces: NewWorkspaces(),
-	}
-	conn := GetDbusConnection()
-	err := conn.Export(service, ServiceObjectPath, interfaceName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-workspace:
-			mon := GetMonitors()
-			service.workspaces.Update(mon)
-			data := service.workspaces.String()
-			err = conn.Emit(ServiceObjectPath, interfaceName+memberName, data)
-			if err != nil {
-				log.Print(err)
-			}
-		}
-	}
 }
 
 func GetMonitors() (m Monitors) {

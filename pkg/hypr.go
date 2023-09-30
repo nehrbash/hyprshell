@@ -68,6 +68,7 @@ type HyprSignalManager struct {
 	WeatherSignal   chan string
 	MonitorSignal   chan string
 	WorkspaceSignal chan string
+	QuoteSignal     chan string
 }
 
 func (h *HyprSignalManager) HyprListen(ctx context.Context) {
@@ -399,7 +400,7 @@ func FavoritsUnmarshalJSON(data []byte) (list AppList, err error) {
 	return list, nil
 }
 
-func saveFavorites(data []byte) error {
+func SaveFavorites(data []byte) error {
 	// Get the user's home directory
 	homeDir, err := os.UserHomeDir()
 	if err != nil {

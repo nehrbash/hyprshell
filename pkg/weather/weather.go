@@ -2,8 +2,7 @@ package weather
 
 import (
 	"encoding/json"
-	"io/ioutil"
-
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -55,12 +54,12 @@ func (w *WeatherForcast) Hours() []Hour {
 	for i, h := range w.Weather[0].Hourly {
 		hours[i].Temp = h.TempF
 		hours[i].Icon = Icon(h.WeatherCode)
-		// docs don't fucking say what the time of the hours are so lets just make them up
+		// code doesn't fucking say what the time perspective is so lets assume hours from current point in time.
 		hours[i].Time = t.Add(time.Hour * time.Duration(i)).Format("03:00")
 	}
 	// 8 is a lot drop the first and last one
 	if days > 6 {
-		hours = hours[1 : days-1]
+		hours = hours[0:6]
 	}
 	return hours
 }
@@ -98,7 +97,7 @@ func GetWeatherData() (w WeatherForcast, err error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body) // response body is []byte
+	body, err := io.ReadAll(resp.Body) // response body is []byte
 	if err != nil {
 		return w, err
 	}

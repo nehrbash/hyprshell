@@ -4,8 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"os"
+	"path"
+
+	"github.com/joshsziegler/zgo/pkg/log"
 
 	core "github.com/nehrbash/hyprshell/pkg"
 
@@ -14,10 +16,29 @@ import (
 )
 
 type Dock struct {
-	save bool
+	// flags
+	save         bool
+	apps         core.Apps
+	updateSignal chan string
 }
 
-func (*Dock) Name() string     { return "dock" }
+func (*Dock) Name() string { return "dock" }
+func (d *Dock) ServiceName() string {
+	return core.InterfacePrefix + d.Name()
+}
+
+func (d *Dock) InterfaceName() string {
+	return core.InterfacePrefix + d.Name() + ".Receiver"
+}
+func (d *Dock) ServicePath() dbus.ObjectPath {
+	return dbus.ObjectPath(path.Join(core.BaseServiceObjectPath, d.Name()))
+}
+
+func (d *Dock) ServiceRun(conn *dbus.Conn, msg any) {
+	applist := d.apps.Update(core.GetClients())
+	conn.Emit(d.ServicePath(), d.InterfaceName()+"."+d.Name(), applist.String())
+}
+
 func (*Dock) Synopsis() string { return "print dock information in json in a constant steam" }
 func (*Dock) Usage() string {
 	return `dock
@@ -31,34 +52,64 @@ func (m *Dock) SetFlags(f *flag.FlagSet) {
 }
 
 // Execute executes the check command.
-func (m *Dock) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func (d *Dock) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	conn, err := dbus.SessionBus()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to connect to session bus:", err)
 		return subcommands.ExitSuccess
 	}
 
-	if m.save {
-		obj := conn.Object(core.ServiceName, core.ServiceObjectPath)
-		err = obj.Call(core.ServiceInterface+".DoAction", 0, "save").Store()
+	if d.save {
+		obj := conn.Object(d.ServiceName(), d.ServicePath())
+		err = obj.Call("DoAction", 0, "save").Store()
 		if err != nil {
-			log.Print(err)
+			log.Info(err)
 		}
 
 	} else { // default stream data
+
 		conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0,
 			fmt.Sprintf("type='signal',sender='%s',interface='%s',path='%s',member='%s'",
-				core.ServiceName, core.ServiceInterface, core.ServiceObjectPath, m.Name()))
-
-		signalChan := make(chan *dbus.Signal, 1)
+				d.ServiceName(), d.InterfaceName(), d.ServicePath(), d.Name()))
+		signalChan := make(chan *dbus.Signal)
 		conn.Signal(signalChan)
 
+		// request first quote
+		obj := conn.Object(d.ServiceName(), d.ServicePath())
+		err = obj.Call("Update", 0).Store()
+		if err != nil {
+			log.Info(err)
+		}
+
 		for signal := range signalChan {
-			if signal.Name == core.ServiceInterface+"."+m.Name() {
-				message := signal.Body[0].(string)
-				fmt.Println(message)
+			if signal.Name == d.InterfaceName()+"."+d.Name() {
+				fmt.Println(signal.Body[0].(string))
 			}
 		}
 	}
 	return subcommands.ExitSuccess
+}
+
+func (d *Dock) Update() *dbus.Error {
+	d.updateSignal <- "request update bitch"
+	return nil
+}
+
+func (d *Dock) DoAction(action string) *dbus.Error {
+	switch action {
+	case "save":
+		data, err := core.FavoritsMarshalJSON(d.apps.Update(core.GetClients()))
+		if err != nil {
+			log.Error(err)
+			return nil
+		}
+		err = core.SaveFavorites(data)
+		if err != nil {
+			log.Error(err)
+			return nil
+		}
+	default:
+		fmt.Printf("Msg: %s \n", action)
+	}
+	return nil
 }

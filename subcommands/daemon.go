@@ -41,18 +41,47 @@ func (*Daemon) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{}) s
 		SubmapSignal:    make(chan string),
 		MonitorSignal:   make(chan string),
 		WorkspaceSignal: make(chan string),
+		QuoteSignal:     make(chan string),
 	}
-
 	go hyprManager.HyprListen(ctx)
 	go hyprManager.HyprClientListen(ctx)
-	go core.DbusDock(ctx, hyprManager.DockSignal, "dock")
-	go core.DbusSubmap(ctx, hyprManager.SubmapSignal)
-	go core.DbusMontitor(ctx, hyprManager.MonitorSignal)
-	go core.DbusWorkspaces(ctx, hyprManager.WorkspaceSignal)
-	go core.DbusWeather(ctx)
-	go core.DbusQuote(ctx)
+
+	dock := &Dock{
+		apps:         core.NewApps(),
+		updateSignal: hyprManager.DockSignal,
+	}
+	submap := &Submap{}
+
+	monitor := &Monitor{
+		updateSignal: hyprManager.MonitorSignal,
+	}
+
+	workspaces := &Workspaces{
+		workspaces:   core.NewWorkspaces(),
+		updateSignal: hyprManager.WorkspaceSignal,
+	}
+	weather := &Weather{
+		updateSignal: hyprManager.WeatherSignal,
+		WeatherData:  "test",
+	}
+
+	quote := &Quote{QuoteSignal: hyprManager.QuoteSignal}
+
+	go core.ServeCommand(ctx, dock, hyprManager.DockSignal)
+	go core.ServeCommand(ctx, submap, hyprManager.SubmapSignal)
+	go core.ServeCommand(ctx, monitor, hyprManager.MonitorSignal)
+	go core.ServeCommand(ctx, workspaces, hyprManager.WorkspaceSignal)
+	go core.ServeCommand(ctx, weather, hyprManager.WeatherSignal)
+	go core.ServeCommand(ctx, quote, hyprManager.QuoteSignal)
 
 	cron := core.GetGlobalScheduler()
+	cron.Every("25m").Do(func() {
+		weather.Update()
+	})
+
+	cron.Every("1m").Do(func() {
+		quote.Update()
+	})
 	cron.Every("25m").Do(func() {
 		time.Sleep(time.Duration(rand.Int63n(int64(5 * time.Minute))))
 		core.NotiPose()
