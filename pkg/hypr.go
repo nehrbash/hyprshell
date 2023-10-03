@@ -20,30 +20,32 @@ import (
 	"github.com/nehrbash/hyprshell/pkg/icon"
 )
 
-type Clients []Client
-type Client struct {
-	Address   string `json:"address"`
-	Mapped    bool   `json:"mapped"`
-	Hidden    bool   `json:"hidden"`
-	At        []int  `json:"at"`
-	Size      []int  `json:"size"`
-	Workspace struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
-	} `json:"workspace"`
-	Floating       bool   `json:"floating"`
-	Monitor        int    `json:"monitor"`
-	Class          string `json:"class"`
-	Title          string `json:"title"`
-	Pid            int    `json:"pid"`
-	Xwayland       bool   `json:"xwayland"`
-	Pinned         bool   `json:"pinned"`
-	Fullscreen     bool   `json:"fullscreen"`
-	FullscreenMode int    `json:"fullscreenMode"`
-	FakeFullscreen bool   `json:"fakeFullscreen"`
-	Grouped        []any  `json:"grouped"`
-	Swallowing     string `json:"swallowing"`
-}
+type (
+	Clients []Client
+	Client  struct {
+		Address   string `json:"address"`
+		Mapped    bool   `json:"mapped"`
+		Hidden    bool   `json:"hidden"`
+		At        []int  `json:"at"`
+		Size      []int  `json:"size"`
+		Workspace struct {
+			ID   int    `json:"id"`
+			Name string `json:"name"`
+		} `json:"workspace"`
+		Floating       bool   `json:"floating"`
+		Monitor        int    `json:"monitor"`
+		Class          string `json:"class"`
+		Title          string `json:"title"`
+		Pid            int    `json:"pid"`
+		Xwayland       bool   `json:"xwayland"`
+		Pinned         bool   `json:"pinned"`
+		Fullscreen     bool   `json:"fullscreen"`
+		FullscreenMode int    `json:"fullscreenMode"`
+		FakeFullscreen bool   `json:"fakeFullscreen"`
+		Grouped        []any  `json:"grouped"`
+		Swallowing     string `json:"swallowing"`
+	}
+)
 
 type App struct {
 	ID        int
@@ -145,8 +147,10 @@ type AppClass struct {
 }
 
 // AddCnt is a temp solution to making apps sortable.
-var AddCnt int
-var classCnt int
+var (
+	AddCnt   int
+	classCnt int
+)
 
 var activeColor string = "active"
 
@@ -227,6 +231,7 @@ func (a *Apps) Delete(app *App) error {
 
 	return nil
 }
+
 func (a *Apps) Add(window Client) {
 	newApp := &App{
 		ID:      AddCnt,
@@ -293,7 +298,6 @@ func (a AppList) String() string {
 }
 
 func (a *Apps) Update(c Clients) (alist AppList) {
-
 	// reset state toggles
 	for _, a2 := range a.lookup {
 		a2.updated = false
@@ -359,7 +363,6 @@ type favorite struct {
 }
 
 func FavoritsMarshalJSON(list AppList) ([]byte, error) {
-
 	// Populate the temporary struct
 	var tempList []favorite
 	for _, appClass := range list {
@@ -389,6 +392,7 @@ func FavoritsUnmarshalJSON(data []byte) (list AppList, err error) {
 	// Populate the AppList slice with the unmarshaled data (ignoring Apps field)
 	for i, tempAppClass := range tempList {
 		list = append(list, AppClass{
+			Apps:     make([]*App, 0),
 			ID:       i,
 			Favorite: true,
 			Desktop:  tempAppClass.Desktop,
@@ -412,13 +416,13 @@ func SaveFavorites(data []byte) error {
 	filePath := filepath.Join(configDir, "hyprshell.json")
 
 	// Create the directory if it doesn't exist
-	err = os.MkdirAll(configDir, 0755)
+	err = os.MkdirAll(configDir, 0o755)
 	if err != nil {
 		return fmt.Errorf("error creating directory: %w", err)
 	}
 
 	// Write the data to the file
-	err = os.WriteFile(filePath, data, 0644)
+	err = os.WriteFile(filePath, data, 0o644)
 	if err != nil {
 		return fmt.Errorf("error writing to file: %w", err)
 	}
