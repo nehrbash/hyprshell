@@ -24,11 +24,13 @@ func (s *Submap) ServiceName() string {
 }
 
 func (s *Submap) InterfaceName() string {
-	return core.InterfacePrefix + s.Name() + ".Reciver"
+	return core.InterfacePrefix + s.Name() + ".Receiver"
 }
+
 func (s *Submap) ServicePath() dbus.ObjectPath {
 	return dbus.ObjectPath(path.Join(core.BaseServiceObjectPath, s.Name()))
 }
+
 func (s *Submap) ServiceRun(conn *dbus.Conn, msg any) {
 	log.Print("submap signal received")
 
@@ -37,11 +39,10 @@ func (s *Submap) ServiceRun(conn *dbus.Conn, msg any) {
 		currentMap = "Default"
 	}
 	data := fmt.Sprintf(`{ "submap": "%s" }`, currentMap)
-	err := conn.Emit(s.ServicePath(), s.InterfaceName(), data)
+	err := conn.Emit(s.ServicePath(), s.InterfaceName()+"."+s.Name(), data)
 	if err != nil {
 		log.Print(err)
 	}
-
 }
 
 func (*Submap) Synopsis() string { return "print hyprland supmap in json as a constant steam" }
@@ -52,11 +53,11 @@ get hyprland mode as json data: Stream
 }
 
 // SetFlags adds the check flags to the specified set.
-func (m *Submap) SetFlags(f *flag.FlagSet) {
+func (s *Submap) SetFlags(f *flag.FlagSet) {
 }
 
 // Execute executes the check command.
-func (m *Submap) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func (s *Submap) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	conn, err := dbus.SessionBus()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to connect to session bus:", err)
@@ -65,16 +66,15 @@ func (m *Submap) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{})
 
 	conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0,
 		fmt.Sprintf("type='signal',sender='%s',interface='%s',path='%s',member='%s'",
-			m.ServiceName(), m.InterfaceName(), m.ServicePath(), m.Name()))
+			s.ServiceName(), s.InterfaceName(), s.ServicePath(), s.Name()))
 
-	signalChan := make(chan *dbus.Signal, 10)
+	signalChan := make(chan *dbus.Signal)
 	conn.Signal(signalChan)
 
 	fmt.Println("{ \"submap\": \"Default\" }")
 	for signal := range signalChan {
-		if signal.Name == m.InterfaceName() {
-			message := signal.Body[0].(string)
-			fmt.Println(message)
+		if signal.Name == s.InterfaceName()+"."+s.Name() {
+			fmt.Println(signal.Body[0].(string))
 		}
 	}
 	return subcommands.ExitSuccess
