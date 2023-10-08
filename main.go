@@ -27,6 +27,7 @@ func init() {
 	sc.Register(&cmd.Workspaces{}, "")
 	sc.Register(&cmd.Quote{}, "")
 	sc.Register(&cmd.Battery{}, "")
+	sc.Register(&cmd.Title{}, "")
 	flag.Parse()
 }
 

@@ -71,6 +71,7 @@ type HyprSignalManager struct {
 	MonitorSignal   chan string
 	WorkspaceSignal chan string
 	QuoteSignal     chan string
+	TitleSignal     chan string
 }
 
 func (h *HyprSignalManager) HyprListen(ctx context.Context) {
@@ -316,7 +317,7 @@ func (a *Apps) Update(c Clients) (alist AppList) {
 	}
 
 	// mark focused
-	focused := GetFocusedAddress()
+	focused := FocusedClient().Address
 	if app, ok := a.lookup[focused]; ok {
 		app.Focused = true
 		a.byClass[app.Class].Focused = true
@@ -339,7 +340,7 @@ func (a *Apps) Update(c Clients) (alist AppList) {
 	return
 }
 
-func GetFocusedAddress() string {
+func FocusedClient() Client {
 	var outb, errb bytes.Buffer
 	var client Client
 	cmd := exec.Command("/usr/bin/hyprctl", "activewindow", "-j")
@@ -352,7 +353,7 @@ func GetFocusedAddress() string {
 	if err := json.Unmarshal(outb.Bytes(), &client); err != nil {
 		log.Println("unmarshal activewindow: ", err)
 	}
-	return client.Address
+	return client
 }
 
 // Create a temporary struct to hold only the necessary data for marshaling

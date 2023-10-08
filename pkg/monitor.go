@@ -69,10 +69,10 @@ type Workspaces []struct {
 }
 
 var (
-	Active    = Lavender
-	Empty     = Bg
-	Focused   = []string{Red, Peach, Green, Blue}
-	Unfocused = []string{Pink, Yellow, Teal, Lavender}
+	Active          = Lavender
+	Empty           = Bg
+	FocusedColors   = []string{Red, Peach, Green, Blue}
+	UnfocusedColors = []string{Pink, Yellow, Teal, Lavender}
 )
 
 func (w Workspaces) String() string {
@@ -93,14 +93,14 @@ func (w Workspaces) Update(m Monitors) {
 		w[i].Color = Empty
 	}
 	// add active montiors
-	var MonNames = make(map[string]int)
+	MonNames := make(map[string]int)
 	for _, mon := range m {
 		MonNames[mon.Name] = mon.ID
 	}
 	// add active workspaces
 	for _, ws := range GetHyprWorkspaces() {
 		if ws.ID > 0 && ws.ID < 8 {
-			w[ws.ID].Color = Unfocused[MonNames[ws.Monitor]]
+			w[ws.ID].Color = UnfocusedColors[MonNames[ws.Monitor]]
 		}
 	}
 	for _, mon := range m {
@@ -108,11 +108,10 @@ func (w Workspaces) Update(m Monitors) {
 			if mon.Focused {
 				w[mon.ActiveWorkspace.ID].Color = Active
 			} else {
-				w[mon.ActiveWorkspace.ID].Color = Focused[mon.ID]
+				w[mon.ActiveWorkspace.ID].Color = FocusedColors[mon.ID]
 			}
 		}
 	}
-
 }
 
 func NewWorkspaces() Workspaces {

@@ -15,8 +15,7 @@ import (
 	"github.com/google/subcommands"
 )
 
-type Daemon struct {
-}
+type Daemon struct{}
 
 func (*Daemon) Name() string     { return "daemon" }
 func (*Daemon) Synopsis() string { return "start the desktop managing daemon" }
@@ -42,6 +41,7 @@ func (*Daemon) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{}) s
 		MonitorSignal:   make(chan string),
 		WorkspaceSignal: make(chan string),
 		QuoteSignal:     make(chan string),
+		TitleSignal:     make(chan string),
 	}
 	go hyprManager.HyprListen(ctx)
 	go hyprManager.HyprClientListen(ctx)
@@ -49,6 +49,7 @@ func (*Daemon) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{}) s
 	dock := &Dock{
 		apps:         core.NewApps(),
 		updateSignal: hyprManager.DockSignal,
+		updateTitle:  hyprManager.TitleSignal,
 	}
 	submap := &Submap{}
 
@@ -64,6 +65,10 @@ func (*Daemon) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{}) s
 		updateSignal: hyprManager.WeatherSignal,
 		WeatherData:  "test",
 	}
+	title := &Title{
+		updateSignal: hyprManager.TitleSignal,
+		CurrentName:  "Keep up The Great Work!", // initialize just so it's never blank
+	}
 
 	quote := &Quote{QuoteSignal: hyprManager.QuoteSignal}
 
@@ -73,6 +78,7 @@ func (*Daemon) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{}) s
 	go core.ServeCommand(ctx, workspaces, hyprManager.WorkspaceSignal)
 	go core.ServeCommand(ctx, weather, hyprManager.WeatherSignal)
 	go core.ServeCommand(ctx, quote, hyprManager.QuoteSignal)
+	go core.ServeCommand(ctx, title, hyprManager.TitleSignal)
 
 	cron := core.GetGlobalScheduler()
 	cron.Every("25m").Do(func() {

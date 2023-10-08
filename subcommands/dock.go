@@ -20,6 +20,7 @@ type Dock struct {
 	save         bool
 	apps         core.Apps
 	updateSignal chan string
+	updateTitle  chan string
 }
 
 func (*Dock) Name() string { return "dock" }
@@ -30,12 +31,15 @@ func (d *Dock) ServiceName() string {
 func (d *Dock) InterfaceName() string {
 	return core.InterfacePrefix + d.Name() + ".Receiver"
 }
+
 func (d *Dock) ServicePath() dbus.ObjectPath {
 	return dbus.ObjectPath(path.Join(core.BaseServiceObjectPath, d.Name()))
 }
 
 func (d *Dock) ServiceRun(conn *dbus.Conn, msg any) {
 	applist := d.apps.Update(core.GetClients())
+	// send title data
+	d.updateTitle <- core.FocusedClient().Title
 	conn.Emit(d.ServicePath(), d.InterfaceName()+"."+d.Name(), applist.String())
 }
 
