@@ -7,9 +7,7 @@ import (
 	"github.com/go-co-op/gocron"
 )
 
-var (
-	globalScheduler *gocron.Scheduler
-)
+var globalScheduler *gocron.Scheduler
 
 // GetGlobalScheduler returns the global scheduler, initializing it if needed.
 func GetGlobalScheduler() *gocron.Scheduler {
@@ -24,6 +22,7 @@ func NotifySend(title, message, iconPath string) {
 	beeep.Notify(title, message, iconPath)
 }
 
+// TODO embed images
 func NotiPose() {
 	NotifySend("Health", "Fix Your Posture!", "/home/nehrbash/.dotfiles/.config/eww/images/heart.png")
 }

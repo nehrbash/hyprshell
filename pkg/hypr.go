@@ -148,6 +148,7 @@ type AppClass struct {
 }
 
 // AddCnt is a temp solution to making apps sortable.
+// TODO they now have an ID
 var (
 	AddCnt   int
 	classCnt int
