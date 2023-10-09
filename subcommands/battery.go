@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/subcommands"
+	"github.com/joshsziegler/zgo/pkg/log"
 )
 
 const (
@@ -130,6 +130,10 @@ func (b *BatteryStatus) String() string {
 	level := int(math.Round(float64(capacity) / 10.0))
 	if capacity >= 95 {
 		level += 1 // full icon
+	}
+	if level > 11 {
+		level = 11
+		log.Errorf("battery icon index of range, capacity: %d, level: %d", capacity, level)
 	}
 	if rate > 0 { // charging
 		b.Icon = BatteryChargingicons[level]
