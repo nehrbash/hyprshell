@@ -127,7 +127,7 @@ func (b *BatteryStatus) String() string {
 		log.Fatal(err)
 	}
 
-	level := int(math.Round(float64(capacity)/10.0)) * 10
+	level := int(math.Round(float64(capacity) / 10.0))
 	if capacity >= 95 {
 		level += 1 // full icon
 	}
