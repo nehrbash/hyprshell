@@ -12,8 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 	"unicode"
-
-	"github.com/joshsziegler/zgo/pkg/log"
 )
 
 type iconInfo struct {
@@ -239,21 +237,21 @@ func searchSVGIconPath(baseDir, iconName string) (string, error) {
 }
 
 func getGTKIconThemeName() string {
-	// configPaths := []string{
-	//	"/etc/gtk-3.0/settings.ini",
-	// }
+	configPaths := []string{
+		"/etc/gtk-3.0/settings.ini",
+	}
 
-	// user, err := user.Current()
-	// if err == nil {
-	//	configPaths = append([]string{filepath.Join(user.HomeDir, ".config", "gtk-3.0", "settings.ini")}, configPaths...)
-	// }
+	user, err := user.Current()
+	if err == nil {
+		configPaths = append([]string{filepath.Join(user.HomeDir, ".config", "gtk-3.0", "settings.ini")}, configPaths...)
+	}
 
-	// for _, configPath := range configPaths {
-	//	iconThemeName, err := extractIconThemeName(configPath)
-	//	if err == nil {
-	//		return iconThemeName
-	//	}
-	// }
+	for _, configPath := range configPaths {
+		iconThemeName, err := extractIconThemeName(configPath)
+		if err == nil {
+			return iconThemeName
+		}
+	}
 	// starting from GTK+ 3.14 Adwaita is a built in theme, does not appear to have app icons unfortunately
 	return "Adwaita"
 }
