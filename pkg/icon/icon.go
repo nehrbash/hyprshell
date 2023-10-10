@@ -7,12 +7,13 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
 	"unicode"
+
+	"github.com/joshsziegler/zgo/pkg/log"
 )
 
 type iconInfo struct {
@@ -29,17 +30,9 @@ var (
 
 func init() {
 	iconMap = make(map[string]iconInfo)
-	// add any manual hard fixes of class name here.
-	var err error
 	appDirs = getAppDirs()
-	iconTheme, err = getGTKIconThemeName()
-	if err != nil {
-		panic(err)
-	}
-	defaultIcon, err = LookupSVGIconPath("default-application")
-	if err != nil {
-		panic(err)
-	}
+	iconTheme = getGTKIconThemeName()
+	defaultIcon, _ = LookupSVGIconPath("default-application")
 }
 
 func GetIcon(className string) (string, string) {
@@ -86,7 +79,6 @@ func getFirstWord(s string) string {
 }
 
 func getDesktopIconName(appName string) (desktopPath string, icon string, err error) {
-
 	for _, d := range appDirs {
 		path := filepath.Join(d, fmt.Sprintf("%s.desktop", appName))
 		if pathExists(path) {
@@ -137,8 +129,10 @@ func getAppDirs() []string {
 	for _, d := range strings.Split(xdgDataDirs, ":") {
 		dirs = append(dirs, filepath.Join(d, "applications"))
 	}
-	flatpakDirs := []string{filepath.Join(home, ".local/share/flatpak/exports/share/applications"),
-		"/var/lib/flatpak/exports/share/applications"}
+	flatpakDirs := []string{
+		filepath.Join(home, ".local/share/flatpak/exports/share/applications"),
+		"/var/lib/flatpak/exports/share/applications",
+	}
 
 	for _, d := range flatpakDirs {
 		if !isIn(dirs, d) {
@@ -172,7 +166,7 @@ func searchDesktopDirs(badAppID string) string {
 		items, _ := os.ReadDir(d)
 		for _, item := range items {
 			if strings.Contains(item.Name(), b4Hyphen) {
-				//Let's check items starting from 'org.' first
+				// Let's check items starting from 'org.' first
 				if strings.Count(item.Name(), ".") > 1 {
 					return filepath.Join(d, item.Name())
 				}
@@ -227,7 +221,7 @@ func searchSVGIconPath(baseDir, iconName string) (string, error) {
 		return iconPath, nil
 	}
 
-	files, err := ioutil.ReadDir(iconSizeDir)
+	files, err := os.ReadDir(iconSizeDir)
 	if err != nil {
 		return "", err
 	}
@@ -244,25 +238,24 @@ func searchSVGIconPath(baseDir, iconName string) (string, error) {
 	return "", fmt.Errorf("icon not found in %s", iconSizeDir)
 }
 
-func getGTKIconThemeName() (string, error) {
-	user, err := user.Current()
-	if err != nil {
-		return "", err
-	}
+func getGTKIconThemeName() string {
+	// configPaths := []string{
+	//	"/etc/gtk-3.0/settings.ini",
+	// }
 
-	configPaths := []string{
-		filepath.Join(user.HomeDir, ".config", "gtk-3.0", "settings.ini"),
-		"/etc/gtk-3.0/settings.ini",
-	}
+	// user, err := user.Current()
+	// if err == nil {
+	//	configPaths = append([]string{filepath.Join(user.HomeDir, ".config", "gtk-3.0", "settings.ini")}, configPaths...)
+	// }
 
-	for _, configPath := range configPaths {
-		iconThemeName, err := extractIconThemeName(configPath)
-		if err == nil {
-			return iconThemeName, nil
-		}
-	}
-
-	return "", fmt.Errorf("GTK Icon Theme Name not found")
+	// for _, configPath := range configPaths {
+	//	iconThemeName, err := extractIconThemeName(configPath)
+	//	if err == nil {
+	//		return iconThemeName
+	//	}
+	// }
+	// starting from GTK+ 3.14 Adwaita is a built in theme, does not appear to have app icons unfortunately
+	return "Adwaita"
 }
 
 func extractIconThemeName(configPath string) (string, error) {
