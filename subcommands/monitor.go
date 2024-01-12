@@ -52,7 +52,7 @@ func (m *Monitor) ServiceRun(conn *dbus.Conn, msg any) {
 		log.Info(err)
 		return
 	}
-	err = conn.Emit(m.ServicePath(), m.InterfaceName()+"."+m.Name(), data)
+	err = conn.Emit(m.ServicePath(), m.InterfaceName()+"."+m.Name(), string(data))
 	if err != nil {
 		log.Info(err)
 	}
@@ -92,8 +92,10 @@ func (m *Monitor) Execute(ctx context.Context, f *flag.FlagSet, _ ...interface{}
 
 	for signal := range signalChan {
 		if signal.Name == m.InterfaceName()+"."+m.Name() {
-			message := signal.Body[0].(string)
-			fmt.Println(message)
+			sig, ok := signal.Body[0].(string)
+			if ok {
+				fmt.Println(sig)
+			}
 		}
 	}
 	return subcommands.ExitSuccess
