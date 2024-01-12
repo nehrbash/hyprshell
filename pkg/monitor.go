@@ -8,7 +8,7 @@ import (
 	"os/exec"
 )
 
-type Monitors []struct {
+type Monitor struct {
 	ID              int     `json:"id"`
 	Name            string  `json:"name"`
 	Description     string  `json:"description"`
@@ -36,13 +36,15 @@ type Monitors []struct {
 	Vrr        bool    `json:"vrr"`
 }
 
-func (m *Monitors) Active() int {
+type Monitors []Monitor
+
+func (m *Monitors) Active() Monitor {
 	for _, mon := range *m {
 		if mon.Focused {
-			return mon.ID
+			return mon
 		}
 	}
-	return 0
+	return Monitor{}
 }
 
 func GetMonitors() (m Monitors) {

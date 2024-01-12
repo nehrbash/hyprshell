@@ -2,9 +2,9 @@ package subcommands
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
-
 	"os"
 	"path"
 
@@ -28,18 +28,34 @@ func (m *Monitor) ServiceName() string {
 func (m *Monitor) InterfaceName() string {
 	return core.InterfacePrefix + m.Name() + ".Reciver"
 }
+
 func (m *Monitor) ServicePath() dbus.ObjectPath {
 	return dbus.ObjectPath(path.Join(core.BaseServiceObjectPath, m.Name()))
 }
+
+type monitor struct {
+	ID    int    `json:"id"`
+	Model string `json:"model"`
+}
+
 func (m *Monitor) ServiceRun(conn *dbus.Conn, msg any) {
 	log.Info("focusedmon signal received")
 	m.monitors = core.GetMonitors()
-	data := fmt.Sprintf(`{ "id": "%v" }`, m.monitors.Active())
-	err := conn.Emit(m.ServicePath(), m.InterfaceName()+"."+m.Name(), data)
+	mod := m.monitors.Active()
+	moditorData := monitor{
+		ID:    mod.ID,
+		Model: mod.Model,
+	}
+
+	data, err := json.Marshal(moditorData)
+	if err != nil {
+		log.Info(err)
+		return
+	}
+	err = conn.Emit(m.ServicePath(), m.InterfaceName()+"."+m.Name(), data)
 	if err != nil {
 		log.Info(err)
 	}
-
 }
 
 func (*Monitor) Synopsis() string { return "print hyprland monitor index as json" }
