@@ -107,6 +107,7 @@ func (h *HyprSignalManager) HyprClientListen(ctx context.Context) {
 					time.Sleep(time.Millisecond * 300)
 				}
 				h.DockSignal <- "update"
+				h.WorkspaceSignal <- hyperEvent.Msg
 			case "submap":
 				h.SubmapSignal <- hyperEvent.Msg
 			case "focusedmon":

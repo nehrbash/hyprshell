@@ -33,7 +33,7 @@ func init() {
 	defaultIcon, _ = LookupSVGIconPath("default-application")
 }
 
-func GetIcon(className string) (string, string) {
+func GetIcon(className string) (desktop string, url string) {
 	if iconUrl, ok := iconMap[className]; ok {
 		return iconUrl.desktop, iconUrl.icon
 	}

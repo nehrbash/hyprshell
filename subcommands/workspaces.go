@@ -27,18 +27,20 @@ func (w *Workspaces) ServiceName() string {
 func (w *Workspaces) InterfaceName() string {
 	return core.InterfacePrefix + w.Name() + ".Receiver"
 }
+
 func (w *Workspaces) ServicePath() dbus.ObjectPath {
 	return dbus.ObjectPath(path.Join(core.BaseServiceObjectPath, w.Name()))
 }
+
 func (w *Workspaces) ServiceRun(conn *dbus.Conn, msg any) {
-	mon := core.GetMonitors()
-	w.workspaces.Update(mon)
+	monitors := core.GetMonitors()
+	clients := core.GetClients()
+	w.workspaces.Update(monitors, clients)
 	data := w.workspaces.String()
 	err := conn.Emit(w.ServicePath(), w.InterfaceName()+"."+w.Name(), data)
 	if err != nil {
 		log.Print(err)
 	}
-
 }
 
 func (*Workspaces) Name() string     { return "workspaces" }
@@ -85,7 +87,6 @@ func (w *Workspaces) Execute(ctx context.Context, f *flag.FlagSet, _ ...interfac
 }
 
 func (w *Workspaces) Update() *dbus.Error {
-	// TODO why do I only need to do this twice every other time?
 	w.updateSignal <- "update plz"
 	w.updateSignal <- "update plz"
 	return nil

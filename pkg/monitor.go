@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+
+	"github.com/nehrbash/hyprshell/pkg/icon"
 )
 
 type Monitor struct {
@@ -63,11 +65,12 @@ func GetMonitors() (m Monitors) {
 }
 
 type Workspaces []struct {
-	Number      string `json:"number"`
-	Color       string `json:"color"`
-	Icon        string `json:"icon"`
-	monitorID   int
-	monitorName string
+	Number           string `json:"number"`
+	Color            string `json:"color"`
+	Icon             string `json:"icon"`
+	ActiveWindowIcon string `json:"active_client_icon"`
+	monitorID        int
+	monitorName      string
 }
 
 var (
@@ -90,7 +93,7 @@ func (w Workspaces) String() string {
 	return string(data)
 }
 
-func (w Workspaces) Update(m Monitors) {
+func (w Workspaces) Update(m Monitors, clients Clients) {
 	for i := range w {
 		w[i].Color = Empty
 	}
@@ -99,10 +102,16 @@ func (w Workspaces) Update(m Monitors) {
 	for _, mon := range m {
 		MonNames[mon.Name] = mon.ID
 	}
+
+	clientIconMap := make(map[string]string)
+	for _, c := range clients {
+		_, clientIconMap[c.Address] = icon.GetIcon(c.Class)
+	}
 	// add active workspaces
 	for _, ws := range GetHyprWorkspaces() {
 		if ws.ID > 0 && ws.ID < 8 {
 			w[ws.ID].Color = UnfocusedColors[MonNames[ws.Monitor]]
+			w[ws.ID].ActiveWindowIcon = clientIconMap[ws.Lastwindow]
 		}
 	}
 	for _, mon := range m {
