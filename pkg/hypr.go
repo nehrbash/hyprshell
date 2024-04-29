@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/adrg/xdg"
 	"github.com/nehrbash/hyprshell/pkg/icon"
 )
 
@@ -75,7 +76,7 @@ type HyprSignalManager struct {
 }
 
 func (h *HyprSignalManager) HyprListen(ctx context.Context) {
-	c, err := net.Dial("unix", os.ExpandEnv("/tmp/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"))
+	c, err := net.Dial("unix", os.ExpandEnv(xdg.RuntimeDir+"/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"))
 	if err != nil {
 		log.Fatal(err)
 	}
